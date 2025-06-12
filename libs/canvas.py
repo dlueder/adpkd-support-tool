@@ -1,10 +1,10 @@
+import math
+import numpy as np
 from libs.shape import Shape
 from libs.lib import distance
-import numpy as np
-import math
 from PySide6.QtCore import Qt, Signal, QPoint
-from PySide6.QtGui import QColor, QPixmap, QPainter, QBrush, QPen, QPolygonF
 from PySide6.QtWidgets import QMenu, QApplication, QWidget
+from PySide6.QtGui import QColor, QPixmap, QPainter, QBrush, QPen, QPolygonF
 
 
 CURSOR_DEFAULT = Qt.ArrowCursor
@@ -13,18 +13,8 @@ CURSOR_DRAW = Qt.CrossCursor
 CURSOR_MOVE = Qt.ClosedHandCursor
 CURSOR_GRAB = Qt.OpenHandCursor
 
-# class Canvas(QGLWidget):
-
 
 class Canvas(QWidget):
-    # zoomRequest = pyqtSignal(int)
-    # scrollRequest = pyqtSignal(int, int)
-    # newShape = pyqtSignal()
-    # selectionChanged = pyqtSignal(bool)
-    # shapeMoved = pyqtSignal()
-    # drawingPolygon = pyqtSignal(bool)
-    # saveFileSignal = pyqtSignal()
-
     zoomRequest = Signal(int)
     scrollRequest = Signal(int, int)
     newShape = Signal()
@@ -32,14 +22,11 @@ class Canvas(QWidget):
     shapeMoved = Signal()
     drawingPolygon = Signal(bool)
     saveFileSignal = Signal()
-
     CREATE, EDIT = list(range(2))
-
     epsilon = 11.0
 
     def __init__(self, *args, **kwargs):
         super(Canvas, self).__init__(*args, **kwargs)
-        # Initialise local state.
         self.mode = self.EDIT
         self.contourMode = False
         self.shapes = []
@@ -144,11 +131,10 @@ class Canvas(QWidget):
             mmshape = Shape(label='cell')
             mmshape.contourEdited = True
             points = [(p.x(), p.y()) for p in self.points]
-            # print('manual mark points:{}'.format(points))
-            ymax = max(points, key=lambda x: x[1])[1]  # maximum y-coordinate from manually marked contour
-            ymin = min(points, key=lambda x: x[1])[1]  # minimum y-coordinate from manually marked contour
-            xmax = max(points, key=lambda x: x[0])[0]  # maximum x-coordinate from manually marked contour
-            xmin = min(points, key=lambda x: x[0])[0]  # minimum x-coordinate from manually marked contour
+            ymax = max(points, key=lambda x: x[1])[1]
+            ymin = min(points, key=lambda x: x[1])[1]
+            xmax = max(points, key=lambda x: x[0])[0]
+            xmin = min(points, key=lambda x: x[0])[0]
             bnd_box_offset = 5
             cnt_pnts = list()
             for p in self.points:
@@ -195,21 +181,15 @@ class Canvas(QWidget):
                 painter.drawLine(int(self.last_x), int(self.last_y), int(pos.x()), int(pos.y()))
                 last_list_pos = self.points.__len__() - 1    # get the index for the last mouse position
                 offset = 10
-                # check if start position and endposistion with an offset
-                # end-X > (start-X - offset) und end-X < (start-X + offset)
-                # end-Y > (start-Y - offset) und end-Y < (start-Y + offset)
                 if self.points[last_list_pos].x() > (self.points[0].x() - offset) \
                     and self.points[last_list_pos].x() < (self.points[0].x() + offset) \
                     and self.points[last_list_pos].y() > (self.points[0].y() - offset) \
                     and self.points[last_list_pos].y() < (self.points[0].y() + offset) \
                         and self.points.__len__() > 20:  # minimal 20 points in the manualMark
-                    # print("Start- and End-point matches!!!")
                     self.startEndEqual = True
                     p.setColor(Qt.green)
                     painter.setPen(p)
-                    # draw a circle around the start and end posistion if they are equal
                     painter.drawEllipse(QPoint(int(pos.x()), int(pos.y())), 5, 5)
-                    # print('Match gefunden, Zeichnen Ende')
                     self.enabledDrawing = False
                 painter.end()
                 self.update()
@@ -219,18 +199,13 @@ class Canvas(QWidget):
                 if self.startEndEqual:
                     self.endManualMark()
 
-        # Polygon drawing.
         if self.drawing() or self.manualMarkingMode:
             self.overrideCursor(CURSOR_DRAW)
             if self.current:
                 color = self.drawingLineColor
                 if self.outOfPixmap(pos):
-                    # Don't allow the user to draw outside the pixmap.
-                    # Project the point to the pixmap's edges.
                     pos = self.intersectionPoint(self.current[-1], pos)
                 elif len(self.current) > 1 and self.closeEnough(pos, self.current[0]):
-                    # Attract line to starting point and colorise to alert the
-                    # user:
                     pos = self.current[0]
                     color = self.current.line_color
                     self.overrideCursor(CURSOR_POINT)
@@ -257,7 +232,6 @@ class Canvas(QWidget):
                     self.repaint()
                 return
 
-        # Polygon/Vertex moving.
         if not self.contourMode:
             if Qt.LeftButton & ev.buttons():
                 if self.selectedVertex():
@@ -282,7 +256,6 @@ class Canvas(QWidget):
                         return
                     cntNew = int(pos.y() - shapeOrigin.y()), int(pos.x() - shapeOrigin.x())
                     delta_y, delta_x = cntNew[0] - cntOld[0], cntNew[1] - cntOld[1]
-                    # print(delta_y, delta_x)
                     mods = ev.modifiers()
                     if Qt.KeyboardModifier.ControlModifier == mods:
                         for i, p in enumerate(self.selectedShape.contour_points):
@@ -294,17 +267,9 @@ class Canvas(QWidget):
                             d = np.sqrt((p[0] - cntOld[0]) ** 2 + (p[1] - cntOld[1]) ** 2)
                             f = 1 / (1 + 1.8 * d)
                             self.selectedShape.contour_points[i] = (p[0] + delta_y * f, p[1] + delta_x * f)
-                            #  print(p, f, self.selectedShape.contour_points[i])
             self.repaint()
             return
-        # Just hovering over the canvas, 2 posibilities:
-        # - Highlight shapes
-        # - Highlight vertex
-        # Update shape/vertex fill and tooltip value accordingly.
-        # self.setToolTip('')
         for shape in reversed([s for s in self.shapes if self.isVisible(s)]):
-            # Look for a nearby vertex to highlight. If that fails,
-            # check if we happen to be inside a shape.
             index = shape.nearestVertex(pos, self.epsilon)
             if index is not None:
                 if self.selectedVertex():
@@ -312,16 +277,12 @@ class Canvas(QWidget):
                 self.hVertex, self.hShape = index, shape
                 shape.highlightVertex(index, shape.MOVE_VERTEX)
                 self.overrideCursor(CURSOR_POINT)
-                # self.setToolTip("Click & drag to move point")
-                # self.setStatusTip(self.toolTip())
                 self.update()
                 break
             elif shape.containsPoint(pos):
                 if self.selectedVertex():
                     self.hShape.highlightClear()
                 self.hVertex, self.hShape = None, shape
-                # self.setToolTip("Click & drag to move shape '%s'" % shape.label)
-                # self.setStatusTip(self.toolTip())
                 self.overrideCursor(CURSOR_GRAB)
                 self.update()
                 break
@@ -338,7 +299,6 @@ class Canvas(QWidget):
         if ev.button() == Qt.LeftButton:
 
             if self.manualMarkingMode:
-                # If there is no last point coordinate, the first coordinate is saved as the last coordinate
                 if self.last_x is None and not self.outOfPixmap(pos):
                     self.last_x = pos.x()
                     self.last_y = pos.y()
@@ -364,11 +324,8 @@ class Canvas(QWidget):
                 try:
                     nearest = pointcloud[np.argmin(d_s)]
                     self.cntOldidx = self.selectedShape.contour_points.index(nearest)
-                    # sprint(nearest, self.cntOldidx)
                 except Exception:
                     self.cntOldidx = None
-                    # print(e)
-                # print(self.cntOldidx)
             else:
                 self.selectShapePoint(pos)
                 self.prevPoint = pos
@@ -385,21 +342,17 @@ class Canvas(QWidget):
             self.restoreCursor()
             if not menu.exec_(self.mapToGlobal(ev.pos()))\
                and self.selectedShapeCopy:
-                # Cancel the move by deleting the shadow copy.
                 self.selectedShapeCopy = None
                 self.repaint()
 
         elif ev.button() == Qt.LeftButton and self.selectedShape:
             if self.contourMode and self.showContourOverlay and not self.manualMarkingMode:
-                # print('MouseReleaseEvent from contourMode')
-                # print(pos)
-                if self.cntOldidx is not None:  # cntOldIdx is index of current dragable countour point
+                if self.cntOldidx is not None:
                     shapeOrigin = self.selectedShape.points[0]
                     try:
                         cntOld = self.selectedShape.contour_points[self.cntOldidx]
                         cntNew = int(pos.y() - shapeOrigin.y()), int(pos.x() - shapeOrigin.x())
                         delta_y, delta_x = cntNew[0] - cntOld[0], cntNew[1] - cntOld[1]
-                        # print(delta_y, delta_x)
                         for i in range(self.cntOldidx - 3, self.cntOldidx + 4, 1):  # points around that index get modified, too
                             i %= len(self.selectedShape.contour_points)
                             p = self.selectedShape.contour_points[i]
@@ -408,7 +361,6 @@ class Canvas(QWidget):
                             self.selectedShape.contour_points[i] = (int(p[0] + delta_y * f), int(p[1] + delta_x * f))
                     except IndexError:
                         print(self.contourMode, self.showContourOverlay, self.manualMarkingMode, self.cntOldidx)
-                        # print(p, f, self.selectedShape.contur_points[i])
             self.repaint()
             if self.selectedVertex():
                 self.overrideCursor(CURSOR_POINT)
@@ -434,8 +386,6 @@ class Canvas(QWidget):
     def hideBackroundShapes(self, value):
         self.hideBackround = value
         if self.selectedShape:
-            # Only hide other shapes if there is a current selection.
-            # Otherwise the user will not be able to select a shape.
             self.setHiding(True)
             self.repaint()
 
@@ -466,8 +416,6 @@ class Canvas(QWidget):
         return self.drawing() and self.current and len(self.current) > 2
 
     def mouseDoubleClickEvent(self, ev):
-        # We need at least 4 points here, since the mousePress handler
-        # adds an extra one before this handler is called.
         if self.canCloseShape() and len(self.current) > 3:
             self.current.popPoint()
             self.finalise()
@@ -478,8 +426,6 @@ class Canvas(QWidget):
         self.selectedShape = shape
         self.setHiding()
         self.selectionChanged.emit(True)
-        # print(shape.points)
-        # print(shape.contour_points)
         self.update()
 
     def selectShapePoint(self, point):
@@ -527,18 +473,13 @@ class Canvas(QWidget):
 
     def boundedMoveShape(self, shape, pos):
         if self.outOfPixmap(pos):
-            return False  # No need to move
+            return False
         o1 = pos + self.offsets[0]
         if self.outOfPixmap(o1):
             pos -= QPoint(min(0, o1.x()), min(0, o1.y()))
         o2 = pos + self.offsets[1]
         if self.outOfPixmap(o2):
             pos += QPoint(min(0, self.pixmap.width() - o2.x()), min(0, self.pixmap.height() - o2.y()))
-        # The next line tracks the new position of the cursor
-        # relative to the shape, but also results in making it
-        # a bit "shaky" when nearing the border and allows it to
-        # go outside of the shape's area for some reason. XXX
-        # self.calculateOffsets(self.selectedShape, pos)
         dp = pos - self.prevPoint
         if dp:
             shape.moveBy(dp)
@@ -577,8 +518,6 @@ class Canvas(QWidget):
             return shape
 
     def boundedShiftShape(self, shape):
-        # Try to move in one direction, and if it fails in another.
-        # Give up if both fail.
         point = shape[0]
         offset = QPoint(2.0, 2.0)
         self.calculateOffsets(shape, point)
@@ -589,13 +528,8 @@ class Canvas(QWidget):
     def paintEvent(self, event):
         if not self.pixmap:
             return super(Canvas, self).paintEvent(event)
-
         p = self._painter
         p.begin(self)
-        # p.setRenderHint(QPainter.Antialiasing)
-        # p.setRenderHint(QPainter)
-        # p.setRenderHint(QPainter.SmoothPixmapTransform)
-
         p.scale(self.scale, self.scale)
         p.translate(self.offsetToCenter())
 
@@ -611,7 +545,6 @@ class Canvas(QWidget):
         if self.selectedShapeCopy:
             self.selectedShapeCopy.paint(p)
 
-        # Paint rect
         if self.current is not None and len(self.line) == 2:
             leftTop = self.line[0]
             rightBottom = self.line[1]
@@ -672,7 +605,6 @@ class Canvas(QWidget):
         aw, ah = area.width(), area.height()
         x = (aw - w) / (2 * s) if aw > w else 0
         y = (ah - h) / (2 * s) if ah > h else 0
-        # return QPoint(x, y)
         return QPoint(x, y)
 
     def outOfPixmap(self, p):
@@ -695,15 +627,9 @@ class Canvas(QWidget):
         self.update()
 
     def closeEnough(self, p1, p2):
-        # d = distance(p1 - p2)
-        # m = (p1-p2).manhattanLength()
-        # print "d %.2f, m %d, %.2f" % (d, m, d - m)
         return distance(p1 - p2) < self.epsilon
 
     def intersectionPoint(self, p1, p2):
-        # Cycle through each image edge in clockwise fashion,
-        # and find the one intersecting the current line segment.
-        # http://paulbourke.net/geometry/lineline2d/
         size = self.pixmap.size()
         points = [(0, 0),
                   (size.width(), 0),
@@ -715,7 +641,6 @@ class Canvas(QWidget):
         x3, y3 = points[i]
         x4, y4 = points[(i + 1) % 4]
         if (x, y) == (x1, y1):
-            # Handle cases where previous point is on one of the edges.
             if x3 == x4:
                 return QPoint(x3, min(max(0, y2), max(y3, y4)))
             else:  # y3 == y4
@@ -736,9 +661,6 @@ class Canvas(QWidget):
             nua = (x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)
             nub = (x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)
             if denom == 0:
-                # This covers two cases:
-                #   nua == nub == 0: Coincident
-                #   otherwise: Parallel
                 continue
             ua, ub = nua / denom, nub / denom
             if 0 <= ua <= 1 and 0 <= ub <= 1:
@@ -748,8 +670,6 @@ class Canvas(QWidget):
                 d = distance(m - QPoint(x2, y2))
                 yield d, i, (x, y)
 
-    # These two, along with a call to adjustSize are required for the
-    # scroll area.
     def sizeHint(self):
         return self.minimumSizeHint()
 
@@ -796,7 +716,6 @@ class Canvas(QWidget):
         elif key == Qt.Key_E and self.selectedShape and self.showContourOverlay:
             self.contourMode = True
             self.unHighlight()
-            # print('Entering contour mode')
         elif key == Qt.Key_Q and self.selectedShape and self.contourMode:
             if self.manualMarkingMode:
                 self.startEndEqual = True
@@ -804,10 +723,7 @@ class Canvas(QWidget):
             self.contourMode = False
             self.selectedShape.contourEdited = True
             self.deSelectShape()
-            # print('Leaving contour mode')
             self.saveFileSignal.emit()
-            # if self.manualMarkingMode:
-            #     self.points.clear()
         elif key == Qt.Key_N and self.selectedShape and self.contourMode:
             if not self.selectedShape.contour_points:
                 self.selectedShape.contour_points = self.genContourInShape(self.selectedShape)
@@ -852,27 +768,22 @@ class Canvas(QWidget):
         return genContour
 
     def moveOnePixel(self, direction):
-        # print(self.selectedShape.points)
         if direction == 'Left' and not self.moveOutOfBound(QPoint(-1.0, 0)):
-            # print("move Left one pixel")
             self.selectedShape.points[0] += QPoint(-1.0, 0)
             self.selectedShape.points[1] += QPoint(-1.0, 0)
             self.selectedShape.points[2] += QPoint(-1.0, 0)
             self.selectedShape.points[3] += QPoint(-1.0, 0)
         elif direction == 'Right' and not self.moveOutOfBound(QPoint(1.0, 0)):
-            # print("move Right one pixel")
             self.selectedShape.points[0] += QPoint(1.0, 0)
             self.selectedShape.points[1] += QPoint(1.0, 0)
             self.selectedShape.points[2] += QPoint(1.0, 0)
             self.selectedShape.points[3] += QPoint(1.0, 0)
         elif direction == 'Up' and not self.moveOutOfBound(QPoint(0, -1.0)):
-            # print("move Up one pixel")
             self.selectedShape.points[0] += QPoint(0, -1.0)
             self.selectedShape.points[1] += QPoint(0, -1.0)
             self.selectedShape.points[2] += QPoint(0, -1.0)
             self.selectedShape.points[3] += QPoint(0, -1.0)
         elif direction == 'Down' and not self.moveOutOfBound(QPoint(0, 1.0)):
-            # print("move Down one pixel")
             self.selectedShape.points[0] += QPoint(0, 1.0)
             self.selectedShape.points[1] += QPoint(0, 1.0)
             self.selectedShape.points[2] += QPoint(0, 1.0)

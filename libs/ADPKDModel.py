@@ -1,12 +1,10 @@
 import torch
 import torchvision
 import lightning as L
-from torchvision.models.detection.backbone_utils import _resnet_fpn_extractor, _validate_trainable_layers
-from torchvision.models.detection._utils import overwrite_eps
-from torchvision.models.detection.mask_rcnn import MaskRCNN
 import segmentation_models_pytorch as smp
-# from segmentation_models_pytorch.losses import DiceLoss
-# from segmentation_models_pytorch.utils.metrics import IoU
+from torchvision.models.detection.mask_rcnn import MaskRCNN
+from torchvision.models.detection._utils import overwrite_eps
+from torchvision.models.detection.backbone_utils import _resnet_fpn_extractor, _validate_trainable_layers
 
 
 class ADPKDModel(L.LightningModule):
@@ -41,8 +39,6 @@ class ADPKDSegmentationModel(L.LightningModule):
     def __init__(self):
         super().__init__()
         self.model = smp.Unet(encoder_name='timm-resnest26d', encoder_weights='imagenet', in_channels=3, classes=1, activation='sigmoid')
-        # self.loss = DiceLoss(mode='binary')
-        # self.metrics = [IoU(threshold=0.90)]
 
     def forward(self, x):
         return self.model(x)

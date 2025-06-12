@@ -1,41 +1,33 @@
-"""PyQT Window Classes."""
-
-import platform
-import os.path
 import sys
-
-import codecs
-import glob
-from functools import partial
-from PIL import Image, ImageFont, ImageDraw
-import numpy as np
-
-import logging
-
-# from skimage import io
-# from skimage.color import rgb2gray
 import cv2
-from shapely.geometry import Polygon
+import glob
+import codecs
+import os.path
+import logging
+import platform
+import numpy as np
+from functools import partial
 from libs.canvas import Canvas
-from libs.colorDialog import ColorDialog
-# from libs.constants import SETTING_ADVANCE_MODE
-from libs.labelDialog import LabelDialog
-from libs.labelFile import LabelFile, LabelFileError
-from libs.lib import addActions, generateColorByText, newAction
-from libs.pascal_voc_io import PascalVocReader, PascalVocWriter, XML_EXT
-from libs.settings import Settings
-from libs.shape import DEFAULT_FILL_COLOR, DEFAULT_LINE_COLOR, Shape
 from libs.toolBar import ToolBar
+from libs.settings import Settings
+from libs.rpath import resource_path
+from shapely.geometry import Polygon
 from libs.zoomWidget import ZoomWidget
+from libs.colorDialog import ColorDialog
+from libs.labelDialog import LabelDialog
+from libs.ui.QPenWidth_ui import Ui_Dialog
+from PIL import Image, ImageFont, ImageDraw
+from libs.ui.widget import HashableQListWidgetItem
+from libs.labelFile import LabelFile, LabelFileError
+from libs.ui.adpkd_tool_design_ui import Ui_MainWindow
 from libs.detection import ADPKDDetector, ADPKDSegmenter
 from libs.excelExport import cellTableGenerator, scaleDialog
-from libs.ui.widget import HashableQListWidgetItem
-from libs.ui.adpkd_tool_design_ui import Ui_MainWindow
-from libs.ui.QPenWidth_ui import Ui_Dialog
-from PySide6.QtWidgets import QMenuBar, QMainWindow, QVBoxLayout, QCheckBox, QLineEdit, QHBoxLayout, QWidget, QToolButton, QScrollArea, QDockWidget, QLabel, QDialog, QColorDialog, QMessageBox, QProgressDialog, QFileDialog, QListWidgetItem
+from libs.lib import addActions, generateColorByText, newAction
+from libs.shape import DEFAULT_FILL_COLOR, DEFAULT_LINE_COLOR, Shape
+from libs.pascal_voc_io import PascalVocReader, PascalVocWriter, XML_EXT
 from PySide6.QtCore import Qt, QSize, QByteArray, QTimer, QPoint, QProcess, QThread
 from PySide6.QtGui import QImage, QPixmap, QPainter, QColor, QCursor, QImageReader, QIcon
-from libs.rpath import resource_path
+from PySide6.QtWidgets import QMenuBar, QMainWindow, QVBoxLayout, QCheckBox, QLineEdit, QHBoxLayout, QWidget, QToolButton, QScrollArea, QDockWidget, QLabel, QDialog, QColorDialog, QMessageBox, QProgressDialog, QFileDialog, QListWidgetItem
 
 
 class WindowMixin(object):
@@ -56,8 +48,6 @@ class WindowMixin(object):
         toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         if actions:
             addActions(toolbar, actions)
-        # self.addToolBar(Qt.LeftToolBarArea, toolbar)
-        # self.addToolBar(TopToolBarArea, toolbar)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, toolbar)
         return toolbar
 
@@ -106,71 +96,40 @@ class MainWindow(QMainWindow, WindowMixin):
         for elem, path in icons:
             icon = QIcon(resource_path(path))
             elem.setIcon(icon)
-
-        # print(resource_path("icons\\folder-open.svg"))
-        # icon = QIcon(resource_path("icons\\folder-open.svg"))
-        # self.ui.actionOpenDirDialog.setIcon(icon)
-
-        # connect actions to functions
-        # open_dir_dialog
         self.ui.actionOpenDirDialog.triggered.connect(self.openDirDialog)
         self.fileListWidget = self.ui.listWidget
-        # open mask rcnn weights
         self.ui.actionOpenWeightsMask.triggered.connect(self.openMaskWeights)
-        # open mask unet weights
         self.ui.actionOpenWeightsUnet.triggered.connect(self.openUnetWeights)
-        # open_prev_img
         self.ui.actionOpenPrevImg.triggered.connect(self.openPrevImg)
-        # open_next_img
         self.ui.actionOpenNextImg.triggered.connect(self.openNextImg)
-        # create_mode
         self.ui.actionCreateMode.triggered.connect(self.setCreateMode)
         self.createMode = self.ui.actionCreateMode
-        # cell_detection_dir
         self.ui.actionCellDetectionDir.triggered.connect(self.cellDetectionDir)
-        # cell_detection
         self.ui.actionCellDetection.triggered.connect(self.cellDetection)
-        # save
         self.ui.actionSave.triggered.connect(self.saveFile)
         self.save = self.ui.actionSave
-        # reload_img
         self.ui.actionReload_Img.triggered.connect(self.reloadImg)
-        # set_edit_mode
         self.ui.actionSetEditMode.triggered.connect(self.setEditMode)
         self.editMode = self.ui.actionSetEditMode
-        # delete_selected_shape
         self.ui.actionDeleteSelectedShape.triggered.connect(self.deleteSelectedShape)
         self.delete = self.ui.actionDeleteSelectedShape
-        # gen_output
         self.ui.actionGenOutput.triggered.connect(self.genOutput)
-        # reset_img
         self.ui.actionResetImg.triggered.connect(self.resetImg)
-        # reset_all
         self.ui.actionResetAll.triggered.connect(self.resetAll)
-        # Konturmodus
         self.ui.actionContourmode.triggered.connect(self.toggleContourOverlay)
         self.contourOverlay = self.ui.actionContourmode
-        # UNet verwenden
-        # self.ui.actionUNet_verwenden.triggered.connect(self.toggleUnet)
         self.ui.actionNN_Verzeichnis_2.clicked.connect(self.changeModelPathDialog)
-        # Zoom in
         self.ui.actionZoomIn.triggered.connect(partial(self.addZoom, 10))
         self.zoomIn = self.ui.actionZoomIn
-        # Zoom out
         self.ui.actionZoomOut.triggered.connect(partial(self.addZoom, -10))
         self.zoomOut = self.ui.actionZoomOut
-        # Original Size
         self.ui.actionOriginalSize.triggered.connect(partial(self.setZoom, 100))
         self.zoomOrg = self.ui.actionOriginalSize
-        # Fit Window
         self.ui.actionFitWindow.triggered.connect(self.setFitWindow)
         self.fitWindow = self.ui.actionFitWindow
-        # Fit Width
         self.ui.actionFitWidth.triggered.connect(self.setFitWidth)
         self.fitWidth = self.ui.actionFitWidth
-        # Change color for manual marking
         self.ui.actionChangePenColor.clicked.connect(self.changePenColor)
-        # Change pen width for manual marking
         self.ui.actionChangePenWidth.clicked.connect(self.changePenWidth)
 
     def __init_settings(self, defaultPrefdefClassFile):
@@ -229,10 +188,6 @@ class MainWindow(QMainWindow, WindowMixin):
         scroll = QScrollArea()
         scroll.setWidget(self.canvas)
         scroll.setWidgetResizable(True)
-        # self.scrollBars = {
-        #     Qt.Vertical: scroll.verticalScrollBar(),
-        #     Qt.Horizontal: scroll.horizontalScrollBar()
-        # }
         self.scrollBars = [scroll.verticalScrollBar(), scroll.horizontalScrollBar()]
         self.scrollArea = scroll
         self.canvas.scrollRequest.connect(self.scrollRequest)
@@ -241,7 +196,6 @@ class MainWindow(QMainWindow, WindowMixin):
         self.canvas.shapeMoved.connect(self.setDirty)
         self.canvas.selectionChanged.connect(self.shapeSelectionChanged)
         self.canvas.drawingPolygon.connect(self.toggleDrawingSensitive)
-        # TODO: change for mdetectiongPolygon.connect(self.toggleDrawingSensitive)
         self.setCentralWidget(scroll)
         self.dockFeatures = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
 
@@ -253,8 +207,6 @@ class MainWindow(QMainWindow, WindowMixin):
         self.segmenter_thread = QThread()
         self.unet_seg.moveToThread(self.segmenter_thread)
         self.segmenter_thread.start()
-        
-        # Actions
         action = partial(newAction, self)
         close = action('&Schließen', self.closeFile, 'Ctrl+W', 'icons/close.png', u'Aktuelle Datei schließen')
         self.zoomActions = (self.zoomWidget, self.zoomIn, self.zoomOut, self.zoomOrg, self.fitWindow, self.fitWidth)
@@ -262,13 +214,10 @@ class MainWindow(QMainWindow, WindowMixin):
         self.scalers = {
             self.FIT_WINDOW: self.scaleFitWindow,
             self.FIT_WIDTH: self.scaleFitWidth,
-            # Set to one to scale to 100% when loading files.
             self.MANUAL_ZOOM: lambda: 1,
         }
         self.onLoadActive = (close, self.createMode, self.editMode)
-
         self.image = QImage()
-        # self.filePath = ustr(defaultFilename)
         self.filePath = defaultFilename
         self.recentFiles = []
         self.lineColor = None
@@ -285,17 +234,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.pixel_scale = settings.get('pixel_scaling', 0)
         self.ui.scalingInput.setText(u'%f' % self.pixel_scale)
         self.unet_usage = settings.get('unet_usage', True)
-        # self.lastOpenDir = ustr(settings.get('last_open_dir', None))
         self.lastOpenDir = settings.get('last_open_dir', None)
-
-        # def xbool(x):
-        #     if isinstance(x, QVariant):
-        #         return x.toBool()
-        #     return bool(x)
-
-        # if xbool(settings.get(SETTING_ADVANCE_MODE, False)):
-        #     pass
-
         if self.filePath and os.path.isdir(self.filePath):
             self.queueEvent(partial(self.importDirImages, self.filePath or ""))
         elif self.filePath:
@@ -308,23 +247,7 @@ class MainWindow(QMainWindow, WindowMixin):
         if self.filePath and os.path.isdir(self.filePath):
             pass
 
-    # change Penwidth
     def changePenWidth(self):
-
-        """
-            Change the thickness of the drawing pen with with the measure from dialog file.
-
-            Attributes
-            ----------
-            QDialog_PenwWidth : QtWidgets.QDialog()
-                Dialog
-            rsp : Boolean
-                Answer of the Dialog
-            pen_width : int
-                Width of pen.
-
-        """
-
         pen_width = self.canvas.getPenWidth()
         QDialog_PenWidth = QDialog()
         self.dialog = Ui_Dialog()
@@ -345,25 +268,6 @@ class MainWindow(QMainWindow, WindowMixin):
         self.drawDialogLine(e)
 
     def drawDialogLine(self, w):
-
-        """
-        This method updates the content of the dialog box. This means the thicknes of the drawn line and the
-        text is updated on the value.
-
-        Parameter
-        ---------
-        e : int
-            Value from the slider,
-
-        Attributes
-        ----------
-        dialogPixmap : QPixmap
-            Drawing board
-        dialogPainter : QPainter
-            Painter for the drawing board.
-        dialogPen : QPen
-            Pen
-        """
         self.dialog.label_2.setText("Pen width: %s" % w)
         dialogPixmap = QPixmap(461, 131)
         dialogPixmap.fill(Qt.white)
@@ -377,15 +281,6 @@ class MainWindow(QMainWindow, WindowMixin):
         dialogPainter.end()
 
     def changePenColor(self):
-        """
-            This method changes the color of the drawing pen with the selected color from the QColorDialog.
-
-            Attribute
-            ---------
-            col : QtGui.QColor
-                Selected color from the dialog.
-
-        """
         col = QColorDialog.getColor()
 
         if col.isValid():
@@ -429,12 +324,6 @@ class MainWindow(QMainWindow, WindowMixin):
         self.canvas.resetState()
         self.labelCoordinates.clear()
 
-    # def currentItem(self):
-    #     # TODO what items?
-    #     if items:
-    #         return items[0]
-    #     return None
-
     def createShape(self):
         self.canvas.setEditing(False)
 
@@ -474,18 +363,13 @@ class MainWindow(QMainWindow, WindowMixin):
         self.editMode.setEnabled(False)
 
     def toggleContourOverlay(self, show=False):
-        # print('clicked contour toggle')
         if show:
             self.calcContours()
         self.canvas.showContourOverlay = show
         self.canvas.deactivateMarkingMode()
         self.canvas.update()
 
-    # def toggleUnet(self, show=True):
-    #     self.unet_usage = show
-
     def fileitemDoubleClicked(self, item=None):
-        # currIndex = self.mImgList.index(ustr(item.text()))
         currIndex = self.mImgList.index(item.text())
         if currIndex < len(self.mImgList):
             filename = self.mImgList[currIndex]
@@ -505,7 +389,6 @@ class MainWindow(QMainWindow, WindowMixin):
             print(e)
             pass
 
-    # React to canvas signals.
     def shapeSelectionChanged(self, selected=False):
         if self._noSelectionSlot:
             self._noSelectionSlot = False
@@ -561,7 +444,6 @@ class MainWindow(QMainWindow, WindowMixin):
         self.canvas.loadShapes(s)
 
     def saveLabels(self, annotationFilePath):
-        # annotationFilePath = ustr(annotationFilePath)
         if self.labelFile is None:
             self.labelFile = LabelFile()
             self.labelFile.verified = self.canvas.verified
@@ -617,7 +499,6 @@ class MainWindow(QMainWindow, WindowMixin):
             self.canvas.resetAllLines()
 
     def scrollRequest(self, delta, orientation):
-        # print(f'Scroll Request emitted with {delta}, {orientation}')
         units = - delta / (8 * 10)
         bar = self.scrollBars[orientation]
         bar.setValue(int(bar.value() + bar.singleStep() * units))
@@ -630,19 +511,12 @@ class MainWindow(QMainWindow, WindowMixin):
         self.setZoom(self.zoomWidget.value() + increment)
 
     def zoomRequest(self, delta):
-        # print(f'Zoom Request emitted with {delta}')
-        # h_bar = self.scrollBars[Qt.Horizontal]
-        # v_bar = self.scrollBars[Qt.Vertical]
         h_bar = self.scrollBars[1]
         v_bar = self.scrollBars[0]
         h_bar_max = h_bar.maximum()
         v_bar_max = v_bar.maximum()
-
         cursor = QCursor()
         pos = cursor.pos()
-        # relative_pos = QWidget.mapFromGlobal(self, pos)
-        # cursor_x = relative_pos.x()
-        # cursor_y = relative_pos.y()
         cursor_x = pos.x()
         cursor_y = pos.y()
         w = self.scrollArea.width()
@@ -655,11 +529,8 @@ class MainWindow(QMainWindow, WindowMixin):
         units = delta / (8 * 5)
         scale = 2
         self.addZoom(scale * units)
-        # get the difference in scrollbar values
-        # this is how far we can move
         d_h_bar_max = h_bar.maximum() - h_bar_max
         d_v_bar_max = v_bar.maximum() - v_bar_max
-        # get the new scrollbar values
         new_h_bar_value = h_bar.value() + move_x * d_h_bar_max
         new_v_bar_value = v_bar.value() + move_y * d_v_bar_max
         h_bar.setValue(int(new_h_bar_value))
@@ -684,19 +555,14 @@ class MainWindow(QMainWindow, WindowMixin):
     def loadFile(self, filePath=None, overlays=None):
         self.resetState()
         self.canvas.setEnabled(False)
-        # if filePath is None:
-        #     filePath = self.settings.get(SETTING_FILENAME)
         filePath = str(filePath)
-        # unicodeFilePath = ustr(filePath)
         unicodeFilePath = filePath
         if unicodeFilePath and self.fileListWidget.count() > 0:
-            # file = filePath.split('/')[-1]
             index = self.mImgList.index(unicodeFilePath)
             fileWidgetItem = self.fileListWidget.item(index)
             fileWidgetItem.setSelected(True)
         if unicodeFilePath and os.path.exists(unicodeFilePath):
             img = cv2.cvtColor(cv2.imread(unicodeFilePath, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
-            # img = read_img(unicodeFilePath, None)
             height, width, channel = img.shape
             bytesPerLine = 3 * width
             image = QImage(img.data, width, height, bytesPerLine, QImage.Format_RGB888)
@@ -730,13 +596,6 @@ class MainWindow(QMainWindow, WindowMixin):
             return True
         return False
 
-    # TODO: seee if this is usefull
-    # def resizeEvent(self, event):
-    #     if self.canvas and not self.image.isNull()\
-    #        and self.zoomMode != self.MANUAL_ZOOM:
-    #         self.adjustScale()
-    #     super(MainWindow, self).resizeEvent(event)
-
     def paintCanvas(self):
         assert not self.image.isNull(), "cannot paint null image"
         self.canvas.scale = 0.01 * self.zoomWidget.value()
@@ -748,25 +607,21 @@ class MainWindow(QMainWindow, WindowMixin):
         self.zoomWidget.setValue(int(100 * value))
 
     def scaleFitWindow(self):
-        e = 2.0  # So that no scrollbars are generated.
+        e = 2.0
         w1 = self.centralWidget().width() - e
         h1 = self.centralWidget().height() - e
         a1 = w1 / h1
-        # Calculate a new scale value based on the pixmap's aspect ratio.
         w2 = self.canvas.pixmap.width() - 0.0
         h2 = self.canvas.pixmap.height() - 0.0
         a2 = w2 / h2
         return w1 / w2 if a2 >= a1 else h1 / h2
 
     def scaleFitWidth(self):
-        # The epsilon does not seem to work too well here.
         w = self.centralWidget().width() - 2.0
         return w / self.canvas.pixmap.width()
 
     def saveSettings(self):
-        # self.settings.data['pixel_scaling'] = self.pixel_scale
         self.settings.data['pixel_scaling'] = float(self.ui.scalingInput.text())
-        # self.settings.data['unet_usage'] = self.unet_usage
         self.settings.data['mask_model_dir'] = self.mask_model_weights
         self.settings.data['unet_dir'] = self.unet_model_weights
         if self.lastOpenDir and os.path.exists(self.lastOpenDir):
@@ -808,24 +663,19 @@ class MainWindow(QMainWindow, WindowMixin):
         currentPath = self.filePath
         localPath = self.filePath.split(os.path.basename(currentPath))[0]
         imgFileName = os.path.basename(currentPath)
-        # currentImg = io.imread(currentPath)
         currentImg = cv2.cvtColor(cv2.imread(currentPath, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
         if self.detector is not None:
-            # print(type(currentImg), currentImg.shape)
             boxes = self.detector.predict(currentImg, img_size=currentImg.shape[:2])
             height, width, depth = currentImg.shape
             filename = currentPath.split('.')[0] + '.xml'
             writer = PascalVocWriter('{0}'.format(localPath), imgFileName, [height, width, depth], localImgPath=currentPath)
             writer.verified = False
-            # print('Writing data to disk')
             for box in boxes:
                 xmin = box.xmin
                 xmax = box.xmax
                 ymin = box.ymin
                 ymax = box.ymax
-                # print(xmin, ymin, xmax, ymax)
                 contour = box.contour
-                # print(contour)
                 confidence = box.confidence
                 writer.addBndBox(xmin, ymin, xmax, ymax, 'cell', contour, confidence, False)
         writer.save(targetFile=filename)
@@ -854,7 +704,6 @@ class MainWindow(QMainWindow, WindowMixin):
         if not self.canvas.shapes:
             return
         else:
-            # fullImg = io.imread(self.filePath)
             fullImg = cv2.cvtColor(cv2.imread(self.filePath, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
             if fullImg is not None:
                 for i, s in enumerate(self.canvas.shapes):
@@ -865,7 +714,6 @@ class MainWindow(QMainWindow, WindowMixin):
                         xmax, ymax = int(s.points[2].x()), int(s.points[2].y())
                         img = fullImg[ymin:ymax + 1, xmin:xmax + 1, :]
                         rendered = True
-                        # img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
                         try:
                             if img.shape[0] <= 1 or img.shape[1] <= 1:
                                 raise ValueError('bounding box is a line not a box')
@@ -886,11 +734,10 @@ class MainWindow(QMainWindow, WindowMixin):
             if rendered:
                 self.saveFile()
 
-    def genOutput(self):   # TODO move to libs
+    def genOutput(self):
         if self.dirname is None:
             return
         number_anno_files = len(glob.glob(self.dirname + '/' + '*.xml'))
-        # currentImg = io.imread(self.filePath)
         currentImg = cv2.cvtColor(cv2.imread(self.filePath, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
         width, height = currentImg.shape[0], currentImg.shape[1]
         del currentImg
@@ -909,7 +756,6 @@ class MainWindow(QMainWindow, WindowMixin):
             progress.setValue(0)
             progress.forceShow()
             for p in self.mImgList:
-                # marked_img_list = list()
                 anno_file = p.split('.')[0] + '.xml'
                 if not os.path.exists(anno_file):
                     continue
@@ -944,7 +790,6 @@ class MainWindow(QMainWindow, WindowMixin):
                     progress.setValue(int(progress.value() + 1))
             progress.close()
             tableGenerator.close()
-            # info = QMessageBox.information(self, u'Information', 'Result stored in {0}.xlsx'.format(excel_filename))
         del dialog
 
     def loadRecent(self, filename, cellDetection=False):
@@ -960,7 +805,6 @@ class MainWindow(QMainWindow, WindowMixin):
             for file in files:
                 if file.lower().endswith(tuple(extensions)):
                     relativePath = os.path.join(root, file)
-                    # path = ustr(os.path.abspath(relativePath))
                     path = os.path.abspath(relativePath)
                     images.append(path)
         images.sort(key=lambda x: x.lower())
@@ -974,13 +818,11 @@ class MainWindow(QMainWindow, WindowMixin):
             defaultOpenDirPath = self.lastOpenDir
         else:
             defaultOpenDirPath = os.path.dirname(self.filePath) if self.filePath else '.'
-        # targetDirPath = ustr(QFileDialog.getExistingDirectory(self, '%s - Open path' % self.appname, defaultOpenDirPath, QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks))
         targetDirPath = QFileDialog.getExistingDirectory(self, '%s - Open path' % self.appname, defaultOpenDirPath, QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks)
         self.importDirImages(targetDirPath)
 
     def changeModelPathDialog(self):
         self.noModelsFoundInformationDialog(msg='No model path configured')
-        # modelPath = ustr(QFileDialog.getExistingDirectory(self, '%s - Open path' % self.appname, self.settings.home, QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks))
         modelPath = QFileDialog.getExistingDirectory(self, '%s - Open path' % self.appname, self.settings.home, QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks)
         if os.path.exists(modelPath):
             mask_model_weights = modelPath + '/MaskRCNN_30_epochs.ckpt'
@@ -1009,17 +851,10 @@ class MainWindow(QMainWindow, WindowMixin):
     def openMaskWeights(self):
         print('Opening weights')
         return None
-        # self.model_weights = QFileDialog.getOpenFileName(self, 'Choose MMDetection weights', os.getcwd(), '(*.pth*)')[0]
-        # del self.detector
-        # # self.detector = MaskRCNNDetector(self.mask_model_weights)
-        # self.detector = mmdetectionDetector(self.model_weights)
 
     def openUnetWeights(self):
         print('Opening weights')
         return None
-        # self.unet_model_weights = QFileDialog.getOpenFileName(self, 'Chosse U-Net weights', os.getcwd(), '(*.hdf5*)')[0]
-        # del self.unet_seg
-        # self.unet_seg = UNetSegmentation(self.unet_model_weights)
 
     def openPrevImg(self, _value=False):
         if self.autoSaving:
@@ -1066,7 +901,6 @@ class MainWindow(QMainWindow, WindowMixin):
     def openFile(self, _value=False):
         if not self.mayContinue():
             return
-        # path = os.path.dirname(ustr(self.filePath)) if self.filePath else '.'
         path = os.path.dirname(self.filePath) if self.filePath else '.'
         formats = ['*.%s' % fmt.data().decode("ascii").lower() for fmt in QImageReader.supportedImageFormats()]
         filters = "Images (%s)" % ' '.join(formats + ['*%s' % LabelFile.suffix])

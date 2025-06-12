@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QToolBar, QWidgetAction, QToolButton
 from PySide6.QtCore import Qt, QSize
+from PySide6.QtWidgets import QToolBar, QWidgetAction, QToolButton
 
 
 class ToolBar(QToolBar):

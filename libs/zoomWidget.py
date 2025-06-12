@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QAbstractSpinBox, QSpinBox
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QFontMetrics
+from PySide6.QtWidgets import QAbstractSpinBox, QSpinBox
 
 
 class ZoomWidget(QSpinBox):

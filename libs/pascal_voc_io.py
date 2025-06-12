@@ -1,8 +1,8 @@
+import ast
+import codecs
+from lxml import etree
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement
-from lxml import etree
-import codecs
-import ast
 
 XML_EXT = '.xml'
 ENCODE_METHOD = 'utf-8'
@@ -26,7 +26,6 @@ class PascalVocWriter:
         rough_string = ElementTree.tostring(elem, 'utf8')
         root = etree.fromstring(rough_string)
         return etree.tostring(root, pretty_print=True, encoding=ENCODE_METHOD).replace("  ".encode(), "\t".encode())
-        # minidom does not support UTF-8
         '''reparsed = minidom.parseString(rough_string)
         return reparsed.toprettyxml(indent="\t", encoding=ENCODE_METHOD)'''
 
@@ -34,7 +33,6 @@ class PascalVocWriter:
         """
             Return XML root
         """
-        # Check conditions
         if self.filename is None or \
                 self.foldername is None or \
                 self.imgSize is None:
@@ -75,11 +73,8 @@ class PascalVocWriter:
 
     def addBndBox(self, xmin, ymin, xmax, ymax, name, contour_points, confidence, contourEdited):
         bndbox = {'xmin': xmin, 'ymin': ymin, 'xmax': xmax, 'ymax': ymax}
-        # print(bndbox)
         bndbox['name'] = name
-        # bndbox['difficult'] = difficult
         bndbox['contour_points'] = contour_points
-        # print(contour_points)
         bndbox['confidence'] = confidence
         bndbox['contourEdited'] = contourEdited
         self.boxlist.append(bndbox)
@@ -98,8 +93,6 @@ class PascalVocWriter:
                 truncated.text = "1"  # max == width or min
             else:
                 truncated.text = "0"
-            # difficult = SubElement(object_item, 'difficult')
-            # difficult.text = str( bool(each_object['difficult']) & 1 )
             bndbox = SubElement(object_item, 'bndbox')
             xmin = SubElement(bndbox, 'xmin')
             xmin.text = str(each_object['xmin'])
@@ -134,8 +127,6 @@ class PascalVocWriter:
 class PascalVocReader:
 
     def __init__(self, filepath):
-        # shapes type:
-        # [labbel, [(x1,y1), (x2,y2), (x3,y3), (x4,y4)], color, color, difficult]
         self.shapes = []
         self.filepath = filepath
         self.verified = False
@@ -171,7 +162,6 @@ class PascalVocReader:
         assert self.filepath.endswith(XML_EXT), "Unsupport file format"
         parser = etree.XMLParser(encoding=ENCODE_METHOD)
         xmltree = ElementTree.parse(self.filepath, parser=parser).getroot()
-        # filename = xmltree.find('filename').text
         try:
             verified = xmltree.attrib['verified']
             if verified == 'yes':
@@ -182,9 +172,5 @@ class PascalVocReader:
         for object_iter in xmltree.findall('object'):
             bndbox = object_iter.find("bndbox")
             label = object_iter.find('name').text
-            # # Add chris
-            # difficult = False
-            # if object_iter.find('difficult') is not None:
-            #     difficult = bool(int(object_iter.find('difficult').text))
             self.addShape(label, bndbox)
         return True

@@ -1,6 +1,6 @@
 import xlsxwriter
-from PySide6.QtWidgets import QDialog, QFormLayout, QLabel, QPushButton, QInputDialog
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QDialog, QFormLayout, QLabel, QPushButton, QInputDialog
 
 labels1 = ['MarkierungsNr.', 'Dateiname', 'area', 'perim', 'radius', 'Volumen']
 labels2 = ['Dateiname', 'Zellenanzahl']

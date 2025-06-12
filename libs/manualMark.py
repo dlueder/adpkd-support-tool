@@ -1,6 +1,6 @@
+from PySide6.QtCore import Qt, QPoint
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QPixmap, QColor, QPolygon, QBrush, QPainter
-from PySide6.QtCore import Qt, QPoint
 
 
 class ManualMarker(QWidget):
@@ -45,7 +45,7 @@ class ManualMarker(QWidget):
         if self.last_x is None:
             self.last_x = e.x()
             self.last_y = e.y()
-            self.points.append(QPoint(e.x(), e.y()))  # insert the first coordination of mouse
+            self.points.append(QPoint(e.x(), e.y()))
             return
 
         painter = QPainter(self.pixmap)
@@ -54,12 +54,8 @@ class ManualMarker(QWidget):
         p.setColor(self.pen_color)
         painter.setPen(p)
         painter.drawLine(self.last_x, self.last_y, e.x(), e.y())
-        last_list_pos = self.points.__len__() - 1    # get the index for the last mouse position
+        last_list_pos = self.points.__len__() - 1
         offset = 3
-
-        # check if start position and endposistion with an offset
-        # end-X > (start-X - offset) und end-X < (start-X + offset)
-        # end-Y > (start-Y - offset) und end-Y < (start-Y + offset)
         if self.points[last_list_pos].x() > (self.points[0].x() - offset) \
             and self.points[last_list_pos].x() < (self.points[0].x() + offset) \
             and self.points[last_list_pos].y() > (self.points[0].y() - offset) \
@@ -69,7 +65,6 @@ class ManualMarker(QWidget):
             self.startEndEqual = True
             p.setColor(Qt.green)
             painter.setPen(p)
-            # draw a circle around the start and end posistion if they are equal
             painter.drawEllipse(QPoint(e.x(), e.y()), 5, 5)
         elif self.startEndEqual:
             self.startEndEqual = False

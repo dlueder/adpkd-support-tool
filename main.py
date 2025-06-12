@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-import os
-import logging
 import sys
+import logging
 
 from libs.ui.initialize import prepare_ui
 from libs.rpath import resource_path
@@ -14,11 +11,8 @@ def main():
     app, _win = prepare_ui(
         appname=__appname__,
         icon=resource_path('icon.png'),
-        # icon='icon.png',
         scriptPath=__file__,
-        # argv=argv,
     )
-    
     ret = app.exec()
     _win.segmenter_thread.terminate()
     _win.detector_thread.terminate()

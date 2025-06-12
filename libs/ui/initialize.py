@@ -1,9 +1,9 @@
 import os
 import sys
-from PySide6.QtWidgets import QApplication
+from .window import MainWindow
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import QSize
-from .window import MainWindow
+from PySide6.QtWidgets import QApplication
 
 
 def prepare_ui(appname, icon, scriptPath, argv=None):

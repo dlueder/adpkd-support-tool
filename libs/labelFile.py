@@ -1,12 +1,11 @@
 # Copyright (c) 2016 Tzutalin
 # Create by TzuTaLin <tzu.ta.lin@gmail.com>
-# Edited by Dominik Lueder
 
 
-from libs.pascal_voc_io import PascalVocWriter
-from libs.pascal_voc_io import XML_EXT
 import os.path
 from PySide6.QtGui import QImage
+from libs.pascal_voc_io import PascalVocWriter
+from libs.pascal_voc_io import XML_EXT
 
 
 class LabelFileError(Exception):

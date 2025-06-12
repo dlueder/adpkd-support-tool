@@ -1,5 +1,5 @@
-from libs.lib import distance
 import sys
+from libs.lib import distance
 from PySide6.QtGui import QColor, QPen, QPainterPath, QFont
 
 DEFAULT_LINE_COLOR = QColor(255, 255, 255, 255)
@@ -14,8 +14,6 @@ DEFAULT_HVERTEX_FILL_COLOR = QColor(255, 255, 255, 255)
 class Shape(object):
     P_SQUARE, P_ROUND = range(2)
     MOVE_VERTEX, NEAR_VERTEX = range(2)
-    # The following class variables influence the drawing
-    # of _all_ shape objects.
     line_color = DEFAULT_LINE_COLOR
     fill_color = DEFAULT_FILL_COLOR
     line_color_edited = DEFAULT_LINE_COLOR_EDITED
@@ -29,7 +27,6 @@ class Shape(object):
 
     def __init__(self, label=None, line_color=None, confidence=1.0):
         self.label = label
-        # points = [(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax)]
         self.points = list()
         self.contour_points = list()
         self.confidence = confidence
@@ -48,9 +45,6 @@ class Shape(object):
         self._closed = False
 
         if line_color is not None:
-            # Override the class line_color attribute
-            # with an object attribute. Currently this
-            # is used for drawing the pending line a different color.
             self.line_color = line_color
 
     def close(self):
@@ -81,7 +75,6 @@ class Shape(object):
 
     def paint(self, painter):
         if self.points:
-            # color = self.select_line_color if self.selected else self.line_color
             if self.selected:
                 color = self.select_line_color
             elif not self.selected and self.contourEdited:
@@ -176,7 +169,6 @@ class Shape(object):
             shape.line_color = self.line_color
         if self.fill_color != Shape.fill_color:
             shape.fill_color = self.fill_color
-        # shape.difficult = self.difficult
         return shape
 
     def __len__(self):

@@ -1,8 +1,8 @@
-from math import sqrt
 import hashlib
+from math import sqrt
+from PySide6.QtCore import QSize
 from PySide6.QtGui import QIcon, QAction, QColor
 from PySide6.QtWidgets import QPushButton, QMenu
-from PySide6.QtCore import QSize
 
 
 def newIcon(icon):
@@ -54,7 +54,6 @@ def addActions(widget, actions):
 
 
 def labelValidator():
-    # return QRegExpValidator(QRegExp(r'^[^ \t].+'), None)
     return None
 
 
