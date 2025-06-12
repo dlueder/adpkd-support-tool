@@ -1,0 +1,11 @@
+numpy==1.26.4
+Pillow
+Shapely>=2.0.4
+lxml>=5.2.2
+XlsxWriter>=3.2.0
+torch==2.3.0
+torchvision==0.18.1
+opencv-python>=4.10.0.84
+lightning>=2.3.3
+PySide6>=6.7.2
+segmentation_models_pytorch
