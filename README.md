@@ -9,9 +9,3 @@ For support contact me directly.
 # References
 
 [LabelImg](https://github.com/tzutalin/labelImg)
-
-[Mask RCNN (Matterport) Implementation](https://github.com/matterport/Mask_RCNN)
-
-[U-Net](https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/)
-
-[Python Implemenation U-Net](https://github.com/zhixuhao/unet)
